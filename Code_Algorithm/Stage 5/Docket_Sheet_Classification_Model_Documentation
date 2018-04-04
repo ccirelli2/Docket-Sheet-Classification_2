@@ -1,14 +1,17 @@
-DOCUMENTATION:
+DRIVER FUNCTION DOCUMENTATION 
 
-I.) OVERVIEW
+
+I. OVERVIEW 
+
 - Purpose:    The purpose of the Driver Function is to create a single script where the user can generate predictions for the docket sheet entries.
-- Step1:      This function generates the Ngram average appearance or frequency dataframes.  These dataframes contain the frequency or average appearance
-              of all Ngrams within the text of the Docket sheet_training file. Given that this data need only be generated once, the
-              Driver Function does not include them in the function pipeline.  Instead they are imported into memory as pandas dataframes (see below).
-- Step2:      This function generates the 'Key Ngrams' from the 'average appearance/frequency' dataframes.  The users has the ability to choose from
-              4 types of Ngrams, 3 calculations and 7 methodologies in order to generate different types of key words.
-- Step3:      This function generates the appearance or frequency of the 'Key Ngrams' identified in Step2 in either the Docket sheet_training or
-              Docket-sheet_test documents. The Docket-sheet_training document contains the preclassified time-periods (stages) for 100 cases where as
+- Step1:      This function generates the average appearance or frequency of the Ngram type for each stage.  Given that this data need only be generated  
+              once the Driver Function does not include them in the function pipeline.  Instead they are imported into memory as pandas dataframes (see 
+              below).
+- Step2:      This function selects which Ngrams are deemd to be most predictive of a given stage using the Step1 'average appearance/frequency' 
+              dataframes.  The users has the ability to choose from 4 types of Ngrams, 3 calculations and 7 methodologies in order to generate different 
+              types of key words.
+- Step3:      This function generates the appearance or frequency of the 'Key Ngrams' identified in Step2 in either the "Docket_sheet_training" or
+              Docket-sheet_test documents. The "Docket-sheet_training document" contains the preclassified time-periods (stages) for 100 cases where as
               the Docket-sheet_test document contains all the cases by no preclassified time-periods.
 - Step4:      This function provides the ability for the user to make predictions using certain machine learning algorithms (currently only the decision
               tree model is available). The function provides for various feature selections, including the type of Ngram and the metric with which to
@@ -20,11 +23,15 @@ I.) OVERVIEW
 - Note:       Below the user will find a more more in depth explanation of each stage, its uses and functionality.
 
 
-II.) IMPORT MODULES
+
+II. IMPORT MODULES
+
 - Functions:  The 'Driver Function' requires that the user imports the modules for Steps 1-5.
 - Modules:    Location of modules '/home/ccirelli2/Desktop/Docket-Sheet-Classification/Modules'
 
-III.) IMPORT NGRAM RESULTS (Frequency & Average Appearance)
+
+III. IMPORT NGRAM RESULTS (Frequency & Average Appearance)
+
 - Appearance: These files contain the average appearance for each of the four types of Ngrams (Nogrmas, Bigrmas, Trigrams, Quadgrams) group by
               the 11 time periods. The average appearance can be defined as the average number of times the word appeared in all the docketsheet
               entries for a given time period.
@@ -32,17 +39,22 @@ III.) IMPORT NGRAM RESULTS (Frequency & Average Appearance)
               the 11 time periods. The frequency can be defined as the absolute number of times the word appeared in all the docketsheet
               entries for a given time period.
 
+
 IV. IMPORT TRAINING DOCKET-SHEET
+
 - Document    This document contains docket-sheet entries for 100 randomly selected cases (about 1,200 entries).  Each docket-sheet entry has been manually
               classified into 12 time-periods with the 12th being an indicator of junk status (entries irrelevant to our model). This document
               serves as the bases for training the Docketsheet Classifier.
 
+
 V. IMPORT TEST DOCKET-SHEET
+
 - Document:   This document contains docket-sheet entries for all of these cases in our study (about 20,000 entries) selected cases (lawsuits).
               None of the entries in this document have been pre-classified.  Rather, and once our model has been adjusted to its most optimal
               feature selection, this document will be used to generate our predictions for the time-period for all of the 20,000 entries.
 - Junk:       Note that a separate pipeline function will limit this dataset to exclude any junk entries prior to being fed into our predictive
               model.  Therefore, the model will only make predictions for docketsheet entries that conform to the 11 time-period structure.
+
 
 VI. MASTER DRIVER FUNCTION (ATTRIBUTES):
 
@@ -112,21 +124,66 @@ VI. MASTER DRIVER FUNCTION (ATTRIBUTES):
 
              Output:             --
 
-    STEP4 - MACHINE LEARNING ALGORITHMS
+    STEP4 - TEST/TRAIN MACHINE LEARNING ALGORITHM, MAKE PREDICTIONS
 
-            Operations         i.)  The main operation here is either to iterate a list of files in a directory to
-                                    generate the predictions or to work with one file.  That and the code is set up so
-                                    that the user can have various choices as can be inferred from the input explanations.
+            Operations:        i.)  The main operation here is to train & test the model using the appearance/frequency of the KeyNgrams selected in Step2 
+                                    and identified in the individual docketsheet entries in Step3
+	      Modes:	       i.)  Training_Mode_Known_Data
+							The user may select this mode to test and train the model only using the pre-classified and known 								data. 
+			      ii.)  Prediction_Mode_Unknown_Data
+							Once the user has tested and trained their model, they may switch to the Prediction mode, which 
+							will allow them to work with and make predictions for the unknown data (some 200,000 docket sheet
+							entries). 
 
-              Input:           i.)  Depth       = the depth that we want to use for our tree.  If not specified default to 8.
-                              ii.)  TrainTest   = The user may choose to calculate the Accuracy score for either the Test or Train data.
-                              iii.) Metric      = the metric that we want to use to gauge the performance of our model.
-                                     Options Include (must be string):
-                                         a.) Accuracy (default): The precision of our model.
-                                         b.) Matrix:  Return the confusion matrix,
-                                         c.) Report: to return  the classificaiton report,
-                                         d.) Export_Indv_Predictions: returns a dataframe object containing the predictions.
-                              iv.)  Docketsheet_train = Known entries with preclassified time periods.
-                              v.)   Docketsheet_test  = Unknown entries without pre-classified time periods.
+              Input:           i.)  Depth       = 	the depth that we want to use for tree tree.  If not specified default to 8.
+                              ii.)  TrainTest   = 	The user may choose to calculate the Accuracy score for either the Test or Train data.
+                              iii.) Metric      = 	options for measuring the performance of the machine learning model.
+                                     	Options Include (must be string):
+                                         a.) Accuracy (default): 
+							The precision of our model.
+                                         b.) Matrix:  	Return the confusion matrix,
+                                         c.) Report: 	to return  the classificaiton report,
+                                         d.) Export_Indv_Predictions: 
+							returns a dataframe object containing the predictions.
+                              iv.)  Docketsheet_known = Docket sheet with preclassified stages
+                              v.)   Docketsheet_unknown=Docket sheet with unknown stages
+
+    STEP5 - MODEL PERFORMANCE METRICS
+
+    	    Purpose	      These are metrics that were designed to measure the performance of the model at selecting the Ngrams that would be most
+			      predictive of each of the 11 stages. 
+       
+            Metrics	      i.) Dependencies:		A calculation for the extent to which the key Ngrams of one stage overlap with another. 
+							The higher the % the lower the performance of the model. 
+			     ii.) No-Matches:		The percentage of docket sheet entries with no Ngram matches.
+							The higher the % thelower the performance of the model. 
+
+	         
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 '''
+
