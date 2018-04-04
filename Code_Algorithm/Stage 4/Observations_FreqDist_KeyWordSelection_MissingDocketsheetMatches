@@ -1,0 +1,33 @@
+Notes regarding:
+
+- Frequency Distributions of words
+- Key Word Selection
+- Missing docket sheet matches
+- Performance of Decision Tree. 
+
+
+
+1.) Frequency Distribution of Words - 'Appearance'
+
+Selections:
+- Appearance
+- Bigrams
+
+Coefficient of the Variance & STDV:
+- If we simple sort in decending order using either of these values, we pick up bigrams that may only 
+  show up 1% of the time in our text.  Therefore, we need to add to our delimiter another filter for
+  bigrams that appear less than x % of the time for a given stage.  
+- New Calculation:
+	- Sort COVAR decending
+	- Iterate the target stage column, [x for x in targetcol if x > 40%]
+
+
+Changes being made to Ste2_P2_Module_Get_Top_Words
+
+1.) Amending the delimiter for the limit_dataframe() funtion.  Adding a delimiter for Top15_highest_COCOEF and Top15_highest_STDV to limit the target column to values greater than 30%. 
+
+2.) 
+
+
+
+

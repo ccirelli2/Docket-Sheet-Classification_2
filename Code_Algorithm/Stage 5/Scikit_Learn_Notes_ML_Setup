@@ -1,0 +1,25 @@
+# Scikit Learn Documentation - Notes
+
+'''X_train, X_test, y_train, y_test
+
+General:  The basic idea behind machine learning in Scikit is to separate
+          data into training and test sets and to train the model using the training
+          set and to test it on the test set, the latter being unknown to the model.
+Variables:
+          i.)    'x' and 'y' constitute the features and targets of our dataset. Therefore,
+                           Scikit requires that we create 4 variables to effectuation our prediction. These include the X_train, y_train, X_test, y_test.
+          ii.)   X_train:  This is the feature variables for our training set.  The user may choose what % (usually entered as a float from 0-1) of the total dataset will be used
+                           to train the model. Note that the model only trains on the X_train data.  It never sees that y_train data and one can assume that the true test of the predictability
+                           of the model is when it encounters unseen examples and has to make a prediction.  Ex:  You take a survey of 100 people for their preference of ice cream.  Your test
+                           set is the first 70.  You train your model on their feedback and you try to predict, base on the feedback of the other 30, which was never fed into the model, what
+                           their preference for ice create is.
+          iii.)  y_train:  These are the coinciding target values for our X_train features. The model trains itself using the feature data (X_train), makes a prediction for the y_train
+                           target values and then provides the user with the ability to generate certain metrics to test its accuracy.
+
+Sklearn.Metrics:
+          i.)   Classification Report: etc; Features = y_true, y_predict.  Example sklearn.metrics.classification_report(y_test, y_predict).  It is pretty intuitive.  y_true are the actual
+                                       values
+
+
+
+'''

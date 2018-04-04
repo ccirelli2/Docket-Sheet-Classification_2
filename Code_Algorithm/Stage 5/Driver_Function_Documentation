@@ -1,0 +1,132 @@
+DOCUMENTATION:
+
+I.) OVERVIEW
+- Purpose:    The purpose of the Driver Function is to create a single script where the user can generate predictions for the docket sheet entries.
+- Step1:      This function generates the Ngram average appearance or frequency dataframes.  These dataframes contain the frequency or average appearance
+              of all Ngrams within the text of the Docket sheet_training file. Given that this data need only be generated once, the
+              Driver Function does not include them in the function pipeline.  Instead they are imported into memory as pandas dataframes (see below).
+- Step2:      This function generates the 'Key Ngrams' from the 'average appearance/frequency' dataframes.  The users has the ability to choose from
+              4 types of Ngrams, 3 calculations and 7 methodologies in order to generate different types of key words.
+- Step3:      This function generates the appearance or frequency of the 'Key Ngrams' identified in Step2 in either the Docket sheet_training or
+              Docket-sheet_test documents. The Docket-sheet_training document contains the preclassified time-periods (stages) for 100 cases where as
+              the Docket-sheet_test document contains all the cases by no preclassified time-periods.
+- Step4:      This function provides the ability for the user to make predictions using certain machine learning algorithms (currently only the decision
+              tree model is available). The function provides for various feature selections, including the type of Ngram and the metric with which to
+              measure the model (example 'Accuracy').
+- Step5:      This function includes the auto-population of two key performance measurements of the Docket-sheet-Classification-Model itself.  These
+              include a measurement of dependency, which measures the extent to which the KeyNgrams chosen for any one stage overlap with another,
+              and a measurement of null values, which measures the percentage of rows in the training Docket-sheet that had zero matches with our
+              KeyNgram selection.
+- Note:       Below the user will find a more more in depth explanation of each stage, its uses and functionality.
+
+
+II.) IMPORT MODULES
+- Functions:  The 'Driver Function' requires that the user imports the modules for Steps 1-5.
+- Modules:    Location of modules '/home/ccirelli2/Desktop/Docket-Sheet-Classification/Modules'
+
+III.) IMPORT NGRAM RESULTS (Frequency & Average Appearance)
+- Appearance: These files contain the average appearance for each of the four types of Ngrams (Nogrmas, Bigrmas, Trigrams, Quadgrams) group by
+              the 11 time periods. The average appearance can be defined as the average number of times the word appeared in all the docketsheet
+              entries for a given time period.
+- Frequency:  These files contain the frequency for each of the four types of Ngrams (Nogrmas, Bigrmas, Trigrams, Quadgrams) group by
+              the 11 time periods. The frequency can be defined as the absolute number of times the word appeared in all the docketsheet
+              entries for a given time period.
+
+IV. IMPORT TRAINING DOCKET-SHEET
+- Document    This document contains docket-sheet entries for 100 randomly selected cases (about 1,200 entries).  Each docket-sheet entry has been manually
+              classified into 12 time-periods with the 12th being an indicator of junk status (entries irrelevant to our model). This document
+              serves as the bases for training the Docketsheet Classifier.
+
+V. IMPORT TEST DOCKET-SHEET
+- Document:   This document contains docket-sheet entries for all of these cases in our study (about 20,000 entries) selected cases (lawsuits).
+              None of the entries in this document have been pre-classified.  Rather, and once our model has been adjusted to its most optimal
+              feature selection, this document will be used to generate our predictions for the time-period for all of the 20,000 entries.
+- Junk:       Note that a separate pipeline function will limit this dataset to exclude any junk entries prior to being fed into our predictive
+              model.  Therefore, the model will only make predictions for docketsheet entries that conform to the 11 time-period structure.
+
+VI. MASTER DRIVER FUNCTION (ATTRIBUTES):
+
+    STEP2 - IDENTIFYING KEY NGRAMS
+             Operations       (Basic Explanation) The function takes as its input an Ngram frequency/appearance distribution file, plus a user
+                              selected Calculation + Methodology and returns a set of KeyNgrams grouped by time-period.  These KeyNgrams
+                              are later used by the model to predict the time-period for a given unknown docket-sheet entry.
+
+              Inputs          i.) stp2_FreqDist_file:           The file containing our Ngram frequency/appearance distributions.
+                              ii.) stp2_Calculation_meth:       see below;
+                              iii.) stp2_methodology_top_words: see below;
+                              iv.) stp2_write2excel:            Allow the user to write the KeyNgrams selected by the model to Excel.
+                              v.) stp2_destination_location:    Allow the user to chose the location to which the file is written.
+                              vi.) stp2_Ngram_type -            The function requires that the user inform the algorithm what type of Ngrams
+                                                                is being used.
+
+              Calculations of Central Tendency:
+                    Purpose:    The user may select from three different types of calculations for measuring the central tendency of
+                                our KeyNgram dataset.  The measures of central tendency are used to measure the extent to which a given KeyNgram
+                                is both unique (how often it appears) to a given time-period and general to the others (usually using and average
+                                of the other time-periods).
+                    Options     'CalculationI_homebrew_STDV':   ((Target-Time-Period - Avg All-Other-Time-Periods) / Target-Time-Period),
+                                'CalculationII_AVG_not_zero':   Standard Deviation of the Target Time period vs Other and where the
+                                                                the average time-periods != 0.
+                                'CalculationIII:                Replace Standard Deviation with the Coefficient of Variance (STDV / Mean).
+
+              Methodologies For Choosing KeyNgrams
+                    Purpose:    In combination with the 3 options for calculating the central tendency of our dataset, the user may select from
+                                6 different methodologies for selecting the KeyNgrams.
+                    Options     'Top15_highest_STDV'
+                                'Top15_highest_COCOEF',
+                                'Top5_highest_STDV_lowest_AVG',
+                                'Top5_highest_STDV_AVG_below_20prct',
+                                'Top5_lowest_STDV_highest_AVG',
+                                'Top5_lowest_COCOEF_highest_AVG'
+
+            Output:             --
+
+    STEP3A - GET THE APPEARANCE OF THE KEY NGRAMS - TRAINING DOCKET-SHEET
+              Operations:     The function will iterate through each of the KeyNgrams and identify whether or not hey are present
+                              in each of the docket-sheet entries.  This will result in a binary value (1/0) for each KeyNgram and
+                              docket-sheet entry. Example Docket-sheet-entry1: ('Ngram1', 1), ('Ngram2',0), ('Ngram3', 0), etc.
+
+              Inputs:         i.)    stp3_Docketsheet:  The training docket-sheet that contains the pre-classified time-periods.
+                              ii.)   stp3_DirNgramLoc:  The location where the KeyNgram documents have been saved.  This is only applicable
+                                                        if Iterable == True.
+                              iii.)  stp3_Iterable:     The user may chose whether to iterate over a directory of Ngram files (True)
+                                                        or a single file (False).
+                              iv.)   stp3_KeyPhrase:    If Iterable == True, then the user will need to define a KeyPhase in order to select
+                                                        which files the function will retrieve.  Examples include type of Ngram ('Bigrams'), a specific
+                                                        calculation ('CalculatonI') or a methodology (Top15_highest_STDV').  This KeyPhrase allows the
+                                                        user to generated predictions for groups of calculation+methodology choices.
+                              v.)    stp3_Destination_location
+                                                        If Write2Exce == True, the destination to which the function will write the resulting dataframe.
+                              vi.)   stp3_Transpose4mlModel
+                                                        Whether the user wants to view the resulting dataframe with rows == to docketsheet entries or
+                                                        KeyNgrams.  *Note that this must be set to True in order to make a prediction in Step4.
+                              vii.)  stp3_Write2Excel   Whether the user wants to write the result to Excel.  Default to False.
+                              viii.) stp3_Target_file   If Iterable == False, the Target_file is the file from which the KeyNgrams will be drawn.
+                                                        In the Driver-Function, we pass a dataframe in memory as the return value from Step2
+
+             Output:             --
+
+    STEP3B - GET THE APPEARANCE OF KEY NGRAMS - TEST DOCKET-SHEET
+             Operations:       Repeat Step3A, but apply functions to the Test Docket-sheet.
+             Input:            All inputs are the same but for stp3_Docketsheet, which is replaced with the test file.
+
+             Output:             --
+
+    STEP4 - MACHINE LEARNING ALGORITHMS
+
+            Operations         i.)  The main operation here is either to iterate a list of files in a directory to
+                                    generate the predictions or to work with one file.  That and the code is set up so
+                                    that the user can have various choices as can be inferred from the input explanations.
+
+              Input:           i.)  Depth       = the depth that we want to use for our tree.  If not specified default to 8.
+                              ii.)  TrainTest   = The user may choose to calculate the Accuracy score for either the Test or Train data.
+                              iii.) Metric      = the metric that we want to use to gauge the performance of our model.
+                                     Options Include (must be string):
+                                         a.) Accuracy (default): The precision of our model.
+                                         b.) Matrix:  Return the confusion matrix,
+                                         c.) Report: to return  the classificaiton report,
+                                         d.) Export_Indv_Predictions: returns a dataframe object containing the predictions.
+                              iv.)  Docketsheet_train = Known entries with preclassified time periods.
+                              v.)   Docketsheet_test  = Unknown entries without pre-classified time periods.
+
+'''
