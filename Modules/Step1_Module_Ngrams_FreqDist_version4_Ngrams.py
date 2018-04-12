@@ -22,8 +22,9 @@ def import_docket_sheet_file(Excel_file):
     df_docket_sheets = pd.read_excel(Excel_file)
     # Select columns
     df_docket_sheets_fit = df_docket_sheets.iloc[:,0:-1]
+    
     # Select rows != None
-    TimePeriod_notNone = df_docket_sheets_fit['Time Period'] > 0
+    TimePeriod_notNone = df_docket_sheets_fit['Time_Period'] > 0
     # Return dataframe
     return df_docket_sheets_fit[TimePeriod_notNone]
 

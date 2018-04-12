@@ -35,12 +35,12 @@ def format_docket_sheet_file(Excel_file, Write2Excel, destination_location):
     df_docketsheet = pd.read_excel(Excel_file)  
         
     # If the length of the docketsheet is less than 2000, then we know it is our training dock. 
-    if len(df_docketsheet) < 3000:
+    if len(df_docketsheet) < 5000:
         # Drop Last column. 
         # Amended on 03.28.2018: Changed from dataframe to reading a file.
         df_docket_sheets_fit = df_docketsheet.iloc[:,0:-1]
         # Select rows != None
-        TimePeriod_notNone = df_docket_sheets_fit['Time Period'] > 0
+        TimePeriod_notNone = df_docket_sheets_fit['Time_Period'] > 0
         # Return dataframe
         return df_docket_sheets_fit[TimePeriod_notNone]
     # Otherwise, it is our testing doc as it contains more than 20,000 rows. 
@@ -56,7 +56,7 @@ def format_docket_sheet_file(Excel_file, Write2Excel, destination_location):
         #Add missing columns present in the original docketsheet
         df_dropcols['Index'] = [x for x in range(0,len(df_limited))]
         df_dropcols['Relevant'] = [x for x in range(0,len(df_limited))]
-        df_dropcols['Time Period'] = [x for x in range(0,len(df_limited))]
+        df_dropcols['Time_Period'] = [x for x in range(0,len(df_limited))]
            
     # Write to Excel
     if Write2Excel == True:
@@ -286,7 +286,7 @@ def get_KeyWordAppearance_DocketsheetEntries(Docketsheet, File,
        
     # Iterate over row of the docketsheet df as an enumerated tuple. 
     for row in Docketsheet_formated.itertuples():
-        
+                
         # Star the Count of the rows
         Count += 1
         
@@ -326,7 +326,7 @@ def get_KeyWordAppearance_DocketsheetEntries(Docketsheet, File,
 
     if Transpose4mlModel == True:
         df_final = df_DAT.transpose()
-        List_Life_Cycles = [x for x in Docketsheet_formated['Time Period']]
+        List_Life_Cycles = [x for x in Docketsheet_formated['Time_Period']]
         df_final['Life Cycle Stage'] = List_Life_Cycles
         
         # Write to Excel
@@ -455,7 +455,7 @@ def transform_Master_Docketsheet(Excel_file, Write2Excel, destination_location):
     # Add missing columns present in the original docketsheet
     df_dropcols['Index'] = [x for x in range(0,len(df_limited))]
     df_dropcols['Relevant'] = [x for x in range(0,len(df_limited))]
-    df_dropcols['Time Period'] = [x for x in range(0,len(df_limited))]
+    df_dropcols['Time_Period'] = [x for x in range(0,len(df_limited))]
     df_dropcols['Unnamed'] = [x for x in range(0,len(df_limited))]
     
     # Write to Excel
